@@ -1,4 +1,5 @@
 #include "navlib_base.h"
+#include "navlib_error.h"
 #include <stdbool.h>
 
 bool NavLibIsAvailable(void);
