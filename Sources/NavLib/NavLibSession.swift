@@ -136,6 +136,15 @@ public extension NavLibSession {
         }
     }
 
+    var useManualFrameTiming: Bool {
+        get { instance[.frameTimingSource] == 1 }
+        set { instance[.frameTimingSource] = newValue ? 1 : 0 }
+    }
+
+    func startFrame(at time: TimeInterval) {
+        instance[.frameTime] = time * 1000.0
+    }
+
     subscript(setting key: String) -> String? {
         get { instance[setting: key] }
         set { instance[setting: key] = newValue }

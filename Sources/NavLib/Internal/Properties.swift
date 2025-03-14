@@ -63,12 +63,14 @@ extension NavLibInstance.Property where T == Int {
     static let keyPressed = Self(navlib.events_keyPress_k)
     static let keyReleased = Self(navlib.events_keyRelease_k)
     static let transaction = Self(navlib.transaction_k)
+    static let frameTimingSource = Self(navlib.frame_timing_source_k)
 }
 
 extension NavLibInstance.Property where T == Double {
     static let unitsToMeters = Self(navlib.model_unitsToMeters_k)
     static let viewFOV = Self(navlib.view_fov_k)
     static let hitTestingDiameter = Self(navlib.hit_aperture_k)
+    static let frameTime = Self(navlib.frame_time_k)
 }
 
 extension NavLibInstance.Property where T == Bool {
