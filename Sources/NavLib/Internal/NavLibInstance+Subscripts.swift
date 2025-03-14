@@ -1,7 +1,7 @@
-import NavLib
+import NavLibCpp
 import Foundation
 
-public extension NavLibSession {
+internal extension NavLibInstance {
     subscript<T>(getter property: Property<T>) -> (() -> T?)? {
         get { nil }
         set {

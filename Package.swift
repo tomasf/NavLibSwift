@@ -7,16 +7,16 @@ let package = Package(
     products: [
         .library(
             name: "NavLibSwift",
-            targets: ["NavLibSwift", "NavLib"]),
+            targets: ["NavLib"]),
     ],
     targets: [
         .target(
-            name: "NavLibSwift",
-            dependencies: ["NavLib"],
+            name: "NavLib",
+            dependencies: ["NavLibCpp"],
             swiftSettings: [.interoperabilityMode(.Cxx)]
         ),
         .target(
-            name: "NavLib",
+            name: "NavLibCpp",
             publicHeadersPath: ".",
             swiftSettings: [.interoperabilityMode(.Cxx)]
         )

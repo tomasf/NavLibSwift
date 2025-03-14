@@ -1,7 +1,7 @@
 import Foundation
-import NavLib
+import NavLibCpp
 
-public class NavLibSession {
+internal final class NavLibInstance {
     internal var handle = navlib.nlHandle_t(INVALID_NAVLIB_HANDLE)
 
     internal var getters: [String: () -> navlib.value_t?] = [:]
@@ -18,8 +18,8 @@ public class NavLibSession {
         let accessors = Self.properties.map {
             navlib.accessor_t(
                 name: $0,
-                fnGet: { NavLibSession.getValue(reference: $0, property: $1, value: $2) },
-                fnSet: { NavLibSession.setValue(reference: $0, property: $1, value: $2) },
+                fnGet: { NavLibInstance.getValue(reference: $0, property: $1, value: $2) },
+                fnSet: { NavLibInstance.setValue(reference: $0, property: $1, value: $2) },
                 param: reference
             )
         }
@@ -32,7 +32,7 @@ public class NavLibSession {
         }
 
         if creationResult != 0 {
-            throw .creationError(creationResult)
+            throw .navLibError(code: creationResult)
         }
     }
 
@@ -48,13 +48,13 @@ public class NavLibSession {
     }
 }
 
-internal extension NavLibSession {
+internal extension NavLibInstance {
     private static func getValue(reference: navlib.param_t, property: navlib.property_t?, value: UnsafeMutablePointer<navlib.value_t>?) -> Int {
         guard let property, let value else { return navlib.make_result_code(UInt(navlib.navlib_errc.error.rawValue)) }
         let propertyName = String(cString: property)
 
         let pointer = UnsafeRawPointer(bitPattern: UInt(reference))!
-        let session = Unmanaged<NavLibSession>.fromOpaque(pointer).takeUnretainedValue()
+        let session = Unmanaged<NavLibInstance>.fromOpaque(pointer).takeUnretainedValue()
 
         if let getter = session.getters[propertyName], let v = getter() {
             value.pointee = v
@@ -70,7 +70,7 @@ internal extension NavLibSession {
         let propertyName = String(cString: property)
 
         let pointer = UnsafeRawPointer(bitPattern: UInt(reference))!
-        let session = Unmanaged<NavLibSession>.fromOpaque(pointer).takeUnretainedValue()
+        let session = Unmanaged<NavLibInstance>.fromOpaque(pointer).takeUnretainedValue()
 
         if let setter = session.setters[propertyName] {
             setter(value.pointee)
@@ -82,10 +82,7 @@ internal extension NavLibSession {
     }
 }
 
-public extension NavLibSession {
-    enum InitializationError: Error {
-        case libraryNotAvailable
-        case creationError (Int)
-    }
+public enum InitializationError: Error {
+    case libraryNotAvailable
+    case navLibError (code: Int)
 }
-

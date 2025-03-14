@@ -1,4 +1,4 @@
-import NavLib
+import NavLibCpp
 import Foundation
 
 public protocol NavLibValue {
