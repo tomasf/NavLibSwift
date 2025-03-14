@@ -20,7 +20,7 @@ public protocol NavLibStateProvider: AnyObject {
     var mousePosition: (any Vector)? { get }
     var selection: Selection? { get }
 
-    func pivotChanged(_ position: any Vector, visible: Bool)
+    func pivotChanged(position: any Vector, visible: Bool)
     func motionActiveChanged(_ active: Bool)
     func hitTest(parameters: HitTest) -> (any Vector)?
 }
@@ -34,7 +34,7 @@ public extension NavLibStateProvider {
 
     var selection: Selection? { nil }
 
-    func pivotChanged(_ position: any Vector, visible: Bool) {}
+    func pivotChanged(position: any Vector, visible: Bool) {}
     var mousePosition: (any Vector)? { return nil }
     func hitTest(parameters: HitTest) -> (any Vector)? { nil }
     func motionActiveChanged(_ active: Bool) {}

@@ -21,6 +21,9 @@ NavLibSwift is a Swift package for interfacing with 3DConnexion's Navigation Fra
 2. Make a class conform to the `NavLibStateProvider` protocol. `modelBoundingBox` and `cameraTransform` are the only two required properties; the rest have defaults.
 3. Call `NavLibSession`'s `start(stateProvider:applicationName:)` method to initialize the session. This will throw an error if the framework is not installed.
 
+* Implement `cameraProjection` to specify the FOV used or to support orthographic projection.
+* Implement `hitTest(parameters:)` to let NavLib perform hit-testing against your model for smarter pivot points. Detect changes to the pivot point with `pivotChanged(position:visible:).`
+
 If your application has multiple 3D views, you can create multiple `NavLibSession` instances. To activate a specific session, call `setAsActiveSession()`.
 
 For a minimal working example, refer to the [`NavLibDemo`](https://github.com/tomasf/NavLibDemo) repository, which demonstrates basic integration with SceneKit.

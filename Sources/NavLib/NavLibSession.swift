@@ -49,13 +49,13 @@ public final class NavLibSession {
         instance[setter: .pivotPosition] = { [weak self] in
             guard let self else { return }
             let visibility = self.instance[.pivotIsVisible]
-            self.stateProvider?.pivotChanged($0, visible: visibility)
+            self.stateProvider?.pivotChanged(position: $0, visible: visibility)
         }
 
         instance[setter: .pivotIsVisible] = { [weak self] in
             guard let self else { return }
             let position = self.instance[.pivotPosition]
-            self.stateProvider?.pivotChanged(position, visible: $0)
+            self.stateProvider?.pivotChanged(position: position, visible: $0)
         }
 
         instance[getter: .hitTestingTarget] = { [weak self] in
