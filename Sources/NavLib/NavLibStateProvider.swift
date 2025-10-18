@@ -1,41 +1,43 @@
 import Foundation
 
 // Adopt this protocol to act as a reader/writer for NavLib
-public protocol NavLibStateProvider: AnyObject {
+public protocol NavLibStateProvider <V>: AnyObject {
+    associatedtype V: Vector
+
     /// The bounding box of the model in world coordinates.
-    var modelBoundingBox: any BoundingBox { get }
+    var modelBoundingBox: V.BoundingBox { get }
 
     /// This transform specifies the camera to world transformation. NavLib will, generally, query this matrix at the beginning of a navigation action and then set the property once per frame.
-    var cameraTransform: any Transform { get set }
+    var cameraTransform: Transform { get set }
 
     /// The projection type and FOV/ortographic extents of the camera. This is only *set* in orthographic mode, to change the zoom level.
-    var cameraProjection: CameraProjection? { get set }
+    var cameraProjection: CameraProjection<V>? { get set }
 
     /// The transform from the client’s coordinate system to the navlib coordinate system.
-    var coordinateSystem: (any Transform)? { get }
+    var coordinateSystem: Transform? { get }
 
     var unitsInMeters: Double? { get }
-    var frontView: (any Transform)? { get }
+    var frontView: Transform? { get }
 
-    var mousePosition: (any Vector)? { get }
-    var selection: Selection? { get }
+    var mousePosition: V? { get }
+    var selection: Selection<V>? { get }
 
-    func pivotChanged(position: any Vector, visible: Bool)
+    func pivotChanged(position: V, visible: Bool)
     func motionActiveChanged(_ active: Bool)
-    func hitTest(parameters: HitTest) -> (any Vector)?
+    func hitTest(parameters: HitTest<V>) -> V?
 }
 
 public extension NavLibStateProvider {
-    var cameraProjection: CameraProjection? { get { nil } set {} }
+    var cameraProjection: CameraProjection<V>? { get { nil } set {} }
 
     var unitsInMeters: Double? { nil }
-    var frontView: (any Transform)? { nil }
-    var coordinateSystem: (any Transform)? { nil }
+    var frontView: Transform? { nil }
+    var coordinateSystem: Transform? { nil }
 
-    var selection: Selection? { nil }
+    var selection: Selection<V>? { nil }
 
-    func pivotChanged(position: any Vector, visible: Bool) {}
-    var mousePosition: (any Vector)? { return nil }
-    func hitTest(parameters: HitTest) -> (any Vector)? { nil }
+    func pivotChanged(position: V, visible: Bool) {}
+    var mousePosition: V? { return nil }
+    func hitTest(parameters: HitTest<V>) -> V? { nil }
     func motionActiveChanged(_ active: Bool) {}
 }

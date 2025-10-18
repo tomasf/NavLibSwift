@@ -1,57 +1,58 @@
 import NavLibCpp
 import Foundation
 
-public enum CameraProjection {
-    case perspective (fov: Double) // FOV in radians
-    case orthographic (viewExtents: any BoundingBox)
+public enum CameraProjection<V: Vector> {
+    case perspective (fov: Double) // FOV in degrees
+    case orthographic (viewExtents: V.BoundingBox)
 }
 
-public struct HitTest {
+public struct HitTest<V: Vector> {
     public let diameter: Double
-    public let origin: any Vector
-    public let direction: any Vector
+    public let origin: V
+    public let direction: V
     public let isSelectionOnly: Bool
 }
 
-public struct Selection {
-    public let boundingBox: any BoundingBox
-    public let transform: any Transform
+public struct Selection<V: Vector> {
+    public let boundingBox: V.BoundingBox
+    public let transform: Transform
 
-    public init(boundingBox: any BoundingBox, transform: any Transform) {
+    public init(boundingBox: V.BoundingBox, transform: Transform) {
         self.boundingBox = boundingBox
         self.transform = transform
     }
+}
+
+public struct Transform {
+    public var values: [Double] // 16 values of a 4x4 matrix in row-major order
+
+    public init(_ values: [Double]) {
+        self.values = values
+    }
+
+    init(_ m: navlib.matrix_t) {
+        values = [m.m00, m.m01, m.m02, m.m03,  m.m10, m.m11, m.m12, m.m13,  m.m20, m.m21, m.m22, m.m23,  m.m30, m.m31, m.m32, m.m33]
+    }
+
+    var navLibMatrix: navlib.matrix {
+        let v = values
+        precondition(v.count == 16, "A transform must always contain exactly 16 values.")
+        return .init(m00: v[0], m01: v[1], m02: v[2], m03: v[3], m10: v[4], m11: v[5], m12: v[6], m13: v[7], m20: v[8], m21: v[9], m22: v[10], m23: v[11], m30: v[12], m31: v[13], m32: v[14], m33: v[15])
+    }
+
 }
 
 // MARK: - Protocols
 
 public protocol Vector {
     associatedtype F: BinaryFloatingPoint
+    typealias BoundingBox = (min: Self, max: Self)
+
     var x: F { get }
     var y: F { get }
     var z: F { get }
-}
 
-public protocol BoundingBox {
-    associatedtype V: Vector
-    var min: V { get }
-    var max: V { get }
-}
-
-public protocol Transform {
-    var values: [Double] { get } // 16 values of a 4x4 matrix in row-major order (row 1, column 1, row 1, column 2...)
-}
-
-// MARK: - NavLib extensions
-
-extension navlib.point: Vector {}
-extension navlib.vector: Vector {}
-extension navlib.box: BoundingBox {}
-
-extension navlib.matrix: Transform {
-    public var values: [Double] {
-        [m00, m01, m02, m03,  m10, m11, m12, m13,  m20, m21, m22, m23,  m30, m31, m32, m33]
-    }
+    init(x: Double, y: Double, z: Double)
 }
 
 // MARK: - Conversions
@@ -60,18 +61,18 @@ internal extension Vector {
     var navLibPoint: navlib.point {
         .init(x: Double(x), y: Double(y), z: Double(z))
     }
-}
 
-internal extension BoundingBox {
-    var navLibBox: navlib.box {
-        .init(min: min.navLibPoint, max: max.navLibPoint)
+    init(_ navLibPoint: navlib.point) {
+        self.init(x: navLibPoint.x, y: navLibPoint.y, z: navLibPoint.z)
+    }
+
+    init(_ navLibVector: navlib.vector) {
+        self.init(x: navLibVector.x, y: navLibVector.y, z: navLibVector.z)
     }
 }
 
-extension Transform {
-    var navLibMatrix: navlib.matrix {
-        let v = values
-        precondition(v.count == 16, "A transform must always contain exactly 16 values.")
-        return .init(m00: v[0], m01: v[1], m02: v[2], m03: v[3], m10: v[4], m11: v[5], m12: v[6], m13: v[7], m20: v[8], m21: v[9], m22: v[10], m23: v[11], m30: v[12], m31: v[13], m32: v[14], m33: v[15])
+internal extension navlib.box {
+    init<V: Vector>(bounds: V.BoundingBox) {
+        self.init(min: bounds.min.navLibPoint, max: bounds.max.navLibPoint)
     }
 }
