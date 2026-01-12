@@ -606,67 +606,7 @@ static const propertyDescription_t propertyDescription[] = {
     {settings_changed_k, long_type, ewrite_access}};
 #endif
 
-/**********************************************************************************************
-Functions exported from the library
- **********************************************************************************************/
-
-/// <summary>
-/// Creates a new navigation instance.
-/// </summary>
-/// <remarks>The client specifies the name of the instance and the properties that are available
-/// for querying and updating by the navigation framework.</remarks>
-/// <param name="pnh">A pointer to a <see cref="nlHandle_t"/> for the new navigation
-/// instance.</param>
-/// <param name="appname">The name of the application.</param>
-/// <param name="property_accessors">An array of <see cref="accessor_t"/> structures containing the
-/// property name, accessor and mutator functions that the client exposes to the navigation
-/// instance.</param>
-/// <param name="accessor_count">The number of <see cref="accessor_t"/> entries passed in the
-/// property_accessors parameter.</param>
-/// <param name="options">Pointer to a <see cref="nlCreateOptions_t"/>. This parameter is optional
-/// and may be null.</param>
-/// <returns>0 on success or a navlib error, see <see cref="navlib_errc::navlib_errc_t"/> and
-/// <see cref="make_result_code"/>.</returns>
- NAVLIB_DLLAPI_ long __cdecl NlCreate(nlHandle_t *pnh, const char *appname,
-                                     const accessor_t property_accessors[], size_t accessor_count,
-                                     const nlCreateOptions_t *options) __attribute__((weak_import));
-
-/// <summary>
-/// Closes an open navigation instance handle and destroys the navigation instance.
-/// </summary>
-/// <param name="nh">A valid <see cref="nlHandle_t"/> of an open navigation instance.</param>
-/// <returns>0 if the function succeeds, otherwise a navlib error, see
-/// <see cref="navlib_errc::navlib_errc_t"/> and <see cref="make_result_code"/>.</returns>
-NAVLIB_DLLAPI_ long __cdecl NlClose(nlHandle_t nh);
-
-/// <summary>
-/// Read the value of a property cached in the navlib.
-/// </summary>
-/// <param name="nh">The <see cref="nlHandle_t"/> of the open navigation instance.</param>
-/// <param name="name">The name of the property whose value is being queried.</param>
-/// <param name="value">A pointer to a <see cref="value_t"/> that contains the property value when
-/// the function returns.</param>
-/// <returns>0 if the function succeeds, otherwise a navlib error, see
-/// <see cref="navlib_errc::navlib_errc_t"/> and <see cref="make_result_code"/>.</returns>
-NAVLIB_DLLAPI_ long __cdecl NlReadValue(nlHandle_t nh, property_t name, value_t *value);
-
-/// <summary>
-/// Write the value for a property to the navlib.
-/// </summary>
-/// <param name="nh">The <see cref="nlHandle_t"/> of the open navigation instance.</param>
-/// <param name="name">The name of the property whose value is to be written.</param>
-/// <param name="value">A pointer to a <see cref="value_t"/> that contains the new property
-/// value.</param>
-/// <returns>0 if the function succeeds, otherwise a navlib error, see
-/// <see cref="navlib_errc::navlib_errc_t"/> and <see cref="make_result_code"/>.</returns>
-NAVLIB_DLLAPI_ long __cdecl NlWriteValue(nlHandle_t nh, property_t name, const value_t *value);
-
-/// <summary>
-/// Query the type of a navlib property.
-/// </summary>
-/// <param name="name">The name of the property whose type is to be queried.</param>
-/// <returns>One of the <see cref="propertyTypes"/> values.</returns>
-NAVLIB_DLLAPI_ propertyType_t __cdecl NlGetType(property_t name);
+// Function declarations are provided by NavLib.h when using dynamic loading
 
 NAVLIB_END_
 

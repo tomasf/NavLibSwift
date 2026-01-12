@@ -4,16 +4,14 @@ NavLibSwift is a Swift package for interfacing with 3DConnexion's Navigation Fra
 
 ## Usage
 
-### Add the 3DconnexionNavLib Library
-
-1. Ensure you have installed 3DConnexion's 3DxWare software. This installs the framework into `/Library/Frameworks`.
-2. Link against `3DconnexionNavLib`, but do *not* import it directly, as the provided headers are broken.
-3. Weak-link the framework to allow your app to run even if the library is not installed. Add `-weak_framework 3DconnexionNavLib` to your Linker Flags to accomplish this. If you're using the hardened runtime, make sure you disable library validation (`com.apple.security.cs.disable-library-validation`).
-
 ### Add the NavLibSwift Package
 
 1. Add `https://github.com/tomasf/NavLibSwift.git` as a dependency in your project/package and `import NavLib`.
 2. Enable C++ interoperability for your target.
+
+That's it! NavLibSwift dynamically loads the 3DconnexionNavLib framework at runtime, so you don't need to link against it or add any special linker flags. Your app will build and run even on systems without the 3DConnexion drivers installed.
+
+If you're using the hardened runtime, make sure you disable library validation (`com.apple.security.cs.disable-library-validation`) to allow loading the framework.
 
 ### Initialize and Use a NavLibSession
 
