@@ -16,8 +16,8 @@ import Foundation
 /// ## Getting Started
 ///
 /// ```swift
-/// // 1. Create a session
-/// let session = NavLibSession<MyVector>()
+/// // 1. Create a session (optionally with a callback queue)
+/// let session = NavLibSession<MyVector>(callbackQueue: myQueue)
 ///
 /// // 2. Create your state provider
 /// let provider = MySceneProvider()
@@ -41,13 +41,19 @@ import Foundation
 /// For apps distributed outside the Mac App Store that use Hardened Runtime, you must
 /// add the `com.apple.security.cs.disable-library-validation` entitlement.
 public final class NavLibSession<V: Vector> {
-    private let instance = NavLibInstance()
+    private let instance: NavLibInstance
 
     /// Creates a new NavLib session.
     ///
     /// After creating a session, call ``start(stateProvider:applicationName:)`` to
     /// initialize the connection to the SpaceMouse drivers.
-    public init() {
+    ///
+    /// - Parameter callbackQueue: Optional dispatch queue for receiving callbacks. When
+    ///   provided, NavLib's multithreading mode is enabled and all state provider callbacks
+    ///   are dispatched to this queue synchronously. When `nil` (the default), single-threaded
+    ///   mode is used and callbacks execute on the thread that initialized the session.
+    public init(callbackQueue: DispatchQueue? = nil) {
+        self.instance = NavLibInstance(callbackQueue: callbackQueue)
         instance[getter: .modelExtents] = { [weak self] in
             guard let bounds = self?.stateProvider?.modelBoundingBox else { return nil }
             return navlib.box(bounds: bounds)

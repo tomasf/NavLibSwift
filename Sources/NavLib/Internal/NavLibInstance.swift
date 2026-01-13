@@ -7,7 +7,11 @@ internal final class NavLibInstance {
     internal var getters: [String: () -> navlib.value_t?] = [:]
     internal var setters: [String: (navlib.value_t) -> ()] = [:]
 
-    public init() {}
+    internal let callbackQueue: DispatchQueue?
+
+    init(callbackQueue: DispatchQueue? = nil) {
+        self.callbackQueue = callbackQueue
+    }
 
     public func start(applicationName: String) throws(InitializationError) {
         guard NavLibIsAvailable() else {
@@ -25,7 +29,7 @@ internal final class NavLibInstance {
         }
 
         let optionsSize = MemoryLayout<navlib.nlCreateOptions_t>.size
-        var options = navlib.nlCreateOptions_t(size: UInt32(optionsSize), bMultiThreaded: false, options: navlib.none)
+        var options = navlib.nlCreateOptions_t(size: UInt32(optionsSize), bMultiThreaded: callbackQueue != nil, options: navlib.none)
 
         let creationResult = accessors.withUnsafeBufferPointer { bufferPointer in
             NlCreate(&handle, applicationName, bufferPointer.baseAddress, accessors.count, &options)
@@ -49,36 +53,58 @@ internal final class NavLibInstance {
 }
 
 internal extension NavLibInstance {
+    private static let resultSuccess = navlib.make_result_code(0)
+    private static let resultError = navlib.make_result_code(UInt(navlib.navlib_errc.error.rawValue))
+    private static let resultNoData = navlib.make_result_code(UInt(navlib.navlib_errc.no_data_available.rawValue))
+
     private static func getValue(reference: navlib.param_t, property: navlib.property_t?, value: UnsafeMutablePointer<navlib.value_t>?) -> Int {
-        guard let property, let value else { return navlib.make_result_code(UInt(navlib.navlib_errc.error.rawValue)) }
+        guard let property, let value else { return resultError }
         let propertyName = String(cString: property)
 
         let pointer = UnsafeRawPointer(bitPattern: UInt(reference))!
-        let session = Unmanaged<NavLibInstance>.fromOpaque(pointer).takeUnretainedValue()
+        let instance = Unmanaged<NavLibInstance>.fromOpaque(pointer).takeUnretainedValue()
 
-        if let getter = session.getters[propertyName], let v = getter() {
-            value.pointee = v
-            return navlib.make_result_code(0)
-        } else {
-            // No value available
-            return navlib.make_result_code(UInt(navlib.navlib_errc.no_data_available.rawValue))
+        guard let getter = instance.getters[propertyName] else {
+            return resultNoData
         }
+
+        if let queue = instance.callbackQueue {
+            var result: navlib.value_t?
+            queue.sync {
+                result = getter()
+            }
+            if let v = result {
+                value.pointee = v
+                return resultSuccess
+            }
+        } else if let v = getter() {
+            value.pointee = v
+            return resultSuccess
+        }
+
+        return resultNoData
     }
 
     private static func setValue(reference: navlib.param_t, property: navlib.property_t?, value: UnsafePointer<navlib.value_t>?) -> Int {
-        guard let property, let value else { return navlib.make_result_code(UInt(navlib.navlib_errc.error.rawValue)) }
+        guard let property, let value else { return resultError }
         let propertyName = String(cString: property)
 
         let pointer = UnsafeRawPointer(bitPattern: UInt(reference))!
-        let session = Unmanaged<NavLibInstance>.fromOpaque(pointer).takeUnretainedValue()
+        let instance = Unmanaged<NavLibInstance>.fromOpaque(pointer).takeUnretainedValue()
 
-        if let setter = session.setters[propertyName] {
-            setter(value.pointee)
-            return navlib.make_result_code(0)
-        } else {
-            // No value available
-            return navlib.make_result_code(UInt(navlib.navlib_errc.no_data_available.rawValue))
+        guard let setter = instance.setters[propertyName] else {
+            return resultNoData
         }
+
+        if let queue = instance.callbackQueue {
+            queue.sync {
+                setter(value.pointee)
+            }
+        } else {
+            setter(value.pointee)
+        }
+
+        return resultSuccess
     }
 }
 
