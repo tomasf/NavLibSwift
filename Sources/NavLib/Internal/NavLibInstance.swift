@@ -82,7 +82,19 @@ internal extension NavLibInstance {
     }
 }
 
+/// Errors that can occur when starting a ``NavLibSession``.
+///
+/// These errors indicate problems initializing the connection to the
+/// 3DConnexion SpaceMouse drivers.
 public enum InitializationError: Error {
+    /// The 3DConnexion NavLib framework is not available.
+    ///
+    /// This typically means the 3DConnexion drivers are not installed on the system.
+    /// Your application should handle this gracefully by disabling SpaceMouse features.
     case libraryNotAvailable
-    case navLibError (code: Int)
+
+    /// NavLib returned an error during initialization.
+    ///
+    /// - Parameter code: The error code returned by the NavLib framework.
+    case navLibError(code: Int)
 }
