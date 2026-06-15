@@ -11,7 +11,7 @@ NavLibSwift is a Swift package for interfacing with 3DConnexion's Navigation Fra
 
 That's it! NavLibSwift dynamically loads the 3DconnexionNavLib framework at runtime, so you don't need to link against it or add any special linker flags. Your app will build and run even on systems without the 3DConnexion drivers installed.
 
-If you're using the hardened runtime, make sure you disable library validation (`com.apple.security.cs.disable-library-validation`) to allow loading the framework.
+If you're using the hardened runtime, make sure you disable library validation (`com.apple.security.cs.disable-library-validation`) to allow loading the framework. If your application is sandboxed, you'll need the USB (`com.apple.security.device.usb`) and Bluetooth (`com.apple.security.device.bluetooth`) entitlements.
 
 ### Initialize and Use a NavLibSession
 
