@@ -125,7 +125,19 @@ public final class NavLibSession<V: Vector> {
 
             return self.stateProvider?.hitTest(parameters: parameters)?.navLibPoint
         }
+
+        instance.setters[NavLibInstance.activeCommandPropertyName] = { [weak self] value in
+            guard let id = value.navLibString, !id.isEmpty else { return }
+            self?.commandHandler?(id)
+        }
     }
+
+    /// A closure invoked when the user activates a command registered via ``registerCommands(_:setID:)``
+    /// by pressing a 3DMouse button mapped to it. The parameter is the activated action's `id`.
+    ///
+    /// The navlib reports an empty id on button release; that is filtered out before this closure
+    /// is called. When the session was created with a `callbackQueue`, this is invoked on that queue.
+    public var commandHandler: ((String) -> Void)?
 
     /// The state provider currently associated with this session.
     ///
@@ -180,6 +192,30 @@ public extension NavLibSession {
     /// call this method when a view gains focus to direct SpaceMouse input to it.
     func setAsActiveSession() {
         instance[.active] = true
+    }
+
+    /// Registers application commands that the user can assign to 3DMouse buttons in the
+    /// 3Dconnexion configuration UI, where they're listed under "Exported Commands" while the
+    /// application is running.
+    ///
+    /// Call this after ``start(stateProvider:applicationName:)``. When the user presses a button
+    /// mapped to one of these commands, ``commandHandler`` is invoked with the action's `id`.
+    ///
+    /// - Important: Commands only show up in the configuration UI for apps that aren't sandboxed.
+    ///   This is a bug in 3Dconnexion's navlib framework, not in NavLibSwift: in a sandboxed app the
+    ///   navlib writes its command file into the app's container, which the configuration UI can't
+    ///   read. Registration still reports success.
+    ///
+    /// - Parameters:
+    ///   - commands: The top-level actions and categories. The 3Dconnexion UI may list them in a
+    ///     different order than given.
+    ///   - setID: An identifier for this set of commands. The user's button assignments are stored
+    ///     under it, so like the command identifiers it must remain constant across releases.
+    /// - Throws: ``CommandRegistrationError/libraryNotAvailable`` if the 3DConnexion drivers are not
+    ///   installed, ``CommandRegistrationError/sessionNotStarted`` if the session hasn't been started,
+    ///   or ``CommandRegistrationError/navLibError(code:)`` if NavLib rejects the commands.
+    func registerCommands(_ commands: [NavLibCommand], setID: String) throws(CommandRegistrationError) {
+        try instance.writeCommands(commands, setID: setID)
     }
 
     /// Indicates whether the application currently has focus.

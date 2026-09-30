@@ -25,6 +25,28 @@ If you're using the hardened runtime, make sure you disable library validation (
 
 If your application has multiple 3D views, you can create multiple `NavLibSession` instances. To activate a specific session, call `setAsActiveSession()`.
 
+### Application Commands
+
+You can expose your app's commands so users can assign them to 3D mouse buttons. Register them after starting the session and handle presses in `commandHandler`:
+
+```swift
+session.commandHandler = { id in
+    // Called with the action's id when a mapped button is pressed
+}
+try session.registerCommands([
+    .category(id: "views", label: "Views", children: [
+        .action(id: "view.front", label: "Front View", description: "Show the front view"),
+        .action(id: "view.top", label: "Top View"),
+    ]),
+    .action(id: "file.export", label: "Export"),
+], setID: "my-app")
+```
+
+Users find them in the 3Dconnexion settings under the button mapping type "Exported Commands", while your app is running. Keep the set and command IDs stable across releases, since the user's button assignments refer to them.
+
+> [!IMPORTANT]
+> Commands only work in apps that aren't sandboxed. This is a bug in 3Dconnexion's navlib framework itself, not in NavLibSwift: in a sandboxed app, the navlib writes its command file into the app's container, where the 3Dconnexion settings can't read it. Registration still reports success, but the settings only show built-in commands. There's no workaround besides disabling the App Sandbox.
+
 For a minimal working example, refer to the [`NavLibDemo`](https://github.com/tomasf/NavLibDemo) repository, which demonstrates basic integration with SceneKit.
 
 ## Background

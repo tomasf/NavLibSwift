@@ -1,6 +1,8 @@
 #include "navlib_base.h"
 #include "NavLib.h"
 #include <dlfcn.h>
+#include <string.h>
+#include <vector>
 
 // Framework path
 static const char* kFrameworkPath = "/Library/Frameworks/3DconnexionNavlib.framework/3DconnexionNavlib";
@@ -79,4 +81,54 @@ long NlWriteValue(navlib::nlHandle_t nh, navlib::property_t name, const navlib::
         return navlib::make_result_code(navlib::navlib_errc::function_not_supported);
     }
     return g_NlWriteValue(nh, name, value);
+}
+
+long NlWriteCommandTree(navlib::nlHandle_t nh, const NlCommandNode *nodes, size_t count) {
+    if (!g_NlWriteValue) {
+        return navlib::make_result_code(navlib::navlib_errc::function_not_supported);
+    }
+    if (count == 0 || nodes[0].type != SI_ACTIONSET_NODE) {
+        return navlib::make_result_code(navlib::navlib_errc::invalid_argument);
+    }
+
+    std::vector<SiActionNodeEx_t> tree(count);
+    std::vector<SiActionNodeEx_t *> lastChild(count, nullptr);
+    for (size_t i = 0; i < count; ++i) {
+        SiActionNodeEx_t &node = tree[i];
+        node.size = sizeof(SiActionNodeEx_t);
+        node.type = nodes[i].type;
+        node.next = nullptr;
+        node.children = nullptr;
+        node.id = nodes[i].id;
+        node.label = nodes[i].label;
+        node.description = nodes[i].description;
+
+        if (i == 0) continue;
+        long parent = nodes[i].parent;
+        if (parent < 0 || (size_t)parent >= i) {
+            return navlib::make_result_code(navlib::navlib_errc::invalid_argument);
+        }
+        // Append to the parent's child list, preserving order.
+        if (lastChild[parent]) {
+            lastChild[parent]->next = &node;
+        } else {
+            tree[parent].children = &node;
+        }
+        lastChild[parent] = &node;
+    }
+
+    navlib::value_t treeValue;
+    treeValue.type = navlib::actionnodeexptr_type;
+    treeValue.pnode = &tree[0];
+    long result = g_NlWriteValue(nh, navlib::commands_tree_k, &treeValue);
+    if (result != 0) {
+        return result;
+    }
+
+    // Make this the active set. (With a single set the navlib defaults to it, but be explicit.)
+    navlib::value_t activeSet;
+    activeSet.type = navlib::string_type;
+    activeSet.string.p = const_cast<char *>(nodes[0].id);
+    activeSet.string.length = strlen(nodes[0].id);
+    return g_NlWriteValue(nh, navlib::commands_activeSet_k, &activeSet);
 }
